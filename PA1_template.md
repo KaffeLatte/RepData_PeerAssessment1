@@ -1,47 +1,61 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 ### Load libraries
-```{r, echo=TRUE}
+
+```r
 library(ggplot2)
 library(dplyr)
 ```
 
+```
+## 
+## Attaching package: 'dplyr'
+## 
+## The following object is masked from 'package:stats':
+## 
+##     filter
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
 ### Set working directory
-```{r, echo=TRUE}
+
+```r
 setwd("~/Coursera/DSspec/RR/RepData_PeerAssessment1")
 ```
 
 ### Note I don't download things in this script as we are anyways cloning the repo with the files in it
 ### Unzip stuff if not already done
-```{r, echo=TRUE}
+
+```r
 if(!file.exists('activity.csv')){
   unzip('activity.zip')
 }
 ```
 
 ### Load data into R, and clean away NA
-```{r, echo=TRUE}
+
+```r
 d <- read.csv("activity.csv")
 data <- d[complete.cases(d),]
 ```
 
 ## What is mean total number of steps taken per day?
 ### Total nr of steps
-```{r, echo=TRUE}
+
+```r
 totalNrOfSteps <- data %>%
   group_by(date) %>%
   summarize(totalSteps = sum(steps)) 
 ```
 
 ### Mean and median
-```{r, echo=TRUE}
+
+```r
 meanNrOfSteps <- data %>%
   group_by(date) %>%
   summarize(meanSteps = mean(steps))
@@ -53,19 +67,24 @@ medianNrOfSteps <-data %>%
 
 ## What is the average daily activity pattern?
 ### Plot histogram over the number of steps
-```{r, echo=TRUE}
+
+```r
 g <- ggplot(totalNrOfSteps, aes(x = totalSteps))
 g + geom_histogram()
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
+
 ### Calculate mean and median
-```{r, echo=TRUE}
+
+```r
 meanNrOfSteps <- mean(data$step, na.rm = TRUE)
 medianNrOfSteps <- median(data$step, na.rm = TRUE)
 ```
 
 ### Time series stuff
-```{r, echo=TRUE}
+
+```r
 timeSerie <- data %>%
   group_by(interval) %>%
   summarize(IntervalMeanSteps = mean(sum(steps)))
@@ -74,7 +93,11 @@ g <- ggplot(data=timeSerie, aes(x = interval, y = IntervalMeanSteps))
 g + geom_line() + 
   xlab("5-min interval") +
   ylab("Mean of steps taken")
+```
 
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
+
+```r
 maxStepInterval <- which.max(timeSerie$IntervalMeanSteps)
 
 nrNA <- length(which(is.na(d)))
@@ -82,7 +105,8 @@ nrNA <- length(which(is.na(d)))
 
 ## Imputing missing values
 ### strategy for filling in missing values: use mean of that day, if not all NA then use 0
-```{r, echo=TRUE}
+
+```r
 imputedData <- d
 imputedData[imputedData$date == "2012-10-01",]$steps <- 0
 imputedData[imputedData$date == "2012-10-08",]$steps <- 0
@@ -102,7 +126,8 @@ totalImputed <- imputedData %>%
   summarize(totalSteps = sum(steps)) 
 ```
 ### Calculate mean and median
-```{r, echo=TRUE}
+
+```r
 imputedMean <- imputedData %>%
   group_by(date) %>%
   summarize(meanSteps = mean(steps))
@@ -113,13 +138,17 @@ imputedMedian <- imputedData %>%
 ```
 
 ### Plot histogram over the number of steps
-```{r, echo=TRUE}
+
+```r
 g <- ggplot(totalImputed, aes(x = totalSteps))
 g + geom_histogram()
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png) 
+
 ## Are there differences in activity patterns between weekdays and weekends?
-```{r, echo=TRUE}
+
+```r
 imputedData$date <- as.Date(imputedData$date)
 imputedData <- imputedData %>%
   mutate(dayType = ifelse(weekdays(date) %in% c("lördag", "söndag"), "weekend", "weekday"))
@@ -134,3 +163,5 @@ g + geom_line() + facet_grid(dayType~.) +
   xlab("5-min interval") +
   ylab("Mean of steps taken")
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 

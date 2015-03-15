@@ -1,47 +1,31 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research Assignment 1
+# KaffeLatte@github
 
-
-## Loading and preprocessing the data
-### Load libraries
-```{r, echo=TRUE}
+# Load needed libraries
 library(ggplot2)
 library(dplyr)
-```
+library(zoo)
 
-### Set working directory
-```{r, echo=TRUE}
+# Set working directory
 setwd("~/Coursera/DSspec/RR/RepData_PeerAssessment1")
-```
 
-### Note I don't download things in this script as we are anyways cloning the repo with the files in it
-### Unzip stuff if not already done
-```{r, echo=TRUE}
+# Note I don't download things in this script as we are anyways cloning the repo with the files in it
+# Unzip stuff if not already done
 if(!file.exists('activity.csv')){
   unzip('activity.zip')
 }
-```
 
-### Load data into R, and clean away NA
-```{r, echo=TRUE}
+# Load data into R, and clean away NA
 d <- read.csv("activity.csv")
 data <- d[complete.cases(d),]
-```
 
-## What is mean total number of steps taken per day?
-### Total nr of steps
-```{r, echo=TRUE}
 totalNrOfSteps <- data %>%
   group_by(date) %>%
   summarize(totalSteps = sum(steps)) 
-```
 
-### Mean and median
-```{r, echo=TRUE}
+totalNrOfSteps <- data.frame(totalNrOfSteps)
+# Calculate mean and median
+
 meanNrOfSteps <- data %>%
   group_by(date) %>%
   summarize(meanSteps = mean(steps))
@@ -49,23 +33,16 @@ meanNrOfSteps <- data %>%
 medianNrOfSteps <-data %>%
   group_by(date) %>%
   summarize(medianSteps = median(steps))
-```
 
-## What is the average daily activity pattern?
-### Plot histogram over the number of steps
-```{r, echo=TRUE}
+# Plot histogram over the number of steps
 g <- ggplot(totalNrOfSteps, aes(x = totalSteps))
 g + geom_histogram()
-```
 
-### Calculate mean and median
-```{r, echo=TRUE}
+# Calculate mean and median
 meanNrOfSteps <- mean(data$step, na.rm = TRUE)
 medianNrOfSteps <- median(data$step, na.rm = TRUE)
-```
 
-### Time series stuff
-```{r, echo=TRUE}
+# Time series stuff
 timeSerie <- data %>%
   group_by(interval) %>%
   summarize(IntervalMeanSteps = mean(sum(steps)))
@@ -78,11 +55,8 @@ g + geom_line() +
 maxStepInterval <- which.max(timeSerie$IntervalMeanSteps)
 
 nrNA <- length(which(is.na(d)))
-```
 
-## Imputing missing values
-### strategy for filling in missing values: use mean of that day, if not all NA then use 0
-```{r, echo=TRUE}
+# strategy for filling in missing values: use mean of that day, if not all NA then use 0
 imputedData <- d
 imputedData[imputedData$date == "2012-10-01",]$steps <- 0
 imputedData[imputedData$date == "2012-10-08",]$steps <- 0
@@ -100,9 +74,9 @@ imputedData <- imputedData %>%
 totalImputed <- imputedData %>%
   group_by(date) %>%
   summarize(totalSteps = sum(steps)) 
-```
-### Calculate mean and median
-```{r, echo=TRUE}
+
+# Calculate mean and median
+
 imputedMean <- imputedData %>%
   group_by(date) %>%
   summarize(meanSteps = mean(steps))
@@ -110,16 +84,11 @@ imputedMean <- imputedData %>%
 imputedMedian <- imputedData %>%
   group_by(date) %>%
   summarize(medianSteps = median(steps))
-```
 
-### Plot histogram over the number of steps
-```{r, echo=TRUE}
+# Plot histogram over the number of steps
 g <- ggplot(totalImputed, aes(x = totalSteps))
 g + geom_histogram()
-```
 
-## Are there differences in activity patterns between weekdays and weekends?
-```{r, echo=TRUE}
 imputedData$date <- as.Date(imputedData$date)
 imputedData <- imputedData %>%
   mutate(dayType = ifelse(weekdays(date) %in% c("lördag", "söndag"), "weekend", "weekday"))
@@ -130,7 +99,8 @@ newTimeSerie <- imputedData %>%
 
 
 g <- ggplot(data=newTimeSerie, aes(x = interval, y = IntervalMeanSteps))
-g + geom_line() + facet_grid(dayType~.) +
+g + geom_line() + facet_grid(.~dayType) +
   xlab("5-min interval") +
   ylab("Mean of steps taken")
-```
+
+
